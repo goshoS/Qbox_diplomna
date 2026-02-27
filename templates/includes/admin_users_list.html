@@ -1,0 +1,58 @@
+<div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+        <thead>
+        <tr>
+            <th class="ps-4">Потребител</th>
+            <th>Имейл</th>
+            <th>Роля</th>
+            <th>Присъединен</th>
+            <th class="text-end pe-4">Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for u in users %}
+            <tr>
+                <td class="ps-4 fw-bold">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2"
+                             style="width: 30px; height: 30px; font-size: 0.8rem;">
+                            {{ u.username|make_list|first|upper }}
+                        </div>
+                        {{ u.username }}
+                    </div>
+                </td>
+                <td>{{ u.email }}</td>
+                <td>
+                    {% if u.is_superuser %} <span class="badge bg-danger">SuperAdmin</span>
+                    {% elif u.is_admin %} <span class="badge bg-primary">Admin</span>
+                    {% else %}
+                        <!-- Адаптивен бадж за User -->
+                        <span class="badge border text-body">User</span>
+                    {% endif %}
+                </td>
+                <td class="text-muted small">{{ u.date_joined|date:"d M Y" }}</td>
+                <td class="text-end pe-4">
+                    {% if request.user.is_superuser and not u.is_superuser %}
+                        <form action="{% url 'toggle_admin' u.pk %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            {% if u.is_admin %}
+                                <button class="btn btn-sm btn-outline-warning me-1" title="Понижи"><i
+                                        class="bi bi-shield-minus"></i></button>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-success me-1" title="Повиши"><i
+                                        class="bi bi-shield-plus"></i></button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                    {% if not u.is_superuser and request.user != u %}
+                        <a href="{% url 'delete_user' u.pk %}" class="btn btn-sm btn-outline-danger"
+                           title="Изтрии потребител">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

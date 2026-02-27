@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Qbox{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .error-text {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 0.7rem;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* --- СТИЛОВЕ ЗА ГРУПИТЕ (Input Groups) --- */
+
+        /* Премахваме дясната граница на инпута, ако след него има нещо */
+        .input-group > .form-control:not(:last-child) {
+            border-right: 0;
+        }
+
+        /* Бутонът "Око" */
+        .password-toggle-btn {
+            background-color: white;
+            border: 1px solid #ced4da;
+            border-left: 0;
+            border-right: 0; /* Махаме и дясната, ако след него има тултип */
+            color: #6c757d;
+            z-index: 5;
+        }
+
+        /* Ако бутонът е последен (при Login), връщаме дясната граница и заоблянето */
+        .password-toggle-btn:last-child {
+            border-right: 1px solid #ced4da;
+            border-top-right-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+        }
+
+        .password-toggle-btn:hover {
+            background-color: #f8f9fa;
+            color: #333;
+            border-color: #ced4da;
+        }
+
+        .password-toggle-btn:focus {
+            box-shadow: none;
+            border-color: #ced4da;
+        }
+
+        /* Тултип иконката */
+        .input-group-text {
+            background-color: white;
+            border-left: 0;
+        }
+
+        /* --- ЛОГИКА ЗА ГРЕШКИ (ЧЕРВЕНИ РАМКИ) --- */
+
+        /* 1. Самият инпут става червен */
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            background-image: none !important;
+            z-index: 2; /* За да излезе рамката над съседните елементи */
+        }
+
+        /* 2. Ако след инпута има Тултип (Username/Email) -> оцвети тултипа */
+        .form-control.is-invalid + .input-group-text {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        /* 3. Ако след инпута има Око (Login) -> оцвети окото */
+        .form-control.is-invalid + .password-toggle-btn {
+            border-color: #dc3545;
+        }
+
+        /* 4. Ако след инпута има Око И след него Тултип (Register Password) -> оцвети и двете */
+        .form-control.is-invalid + .password-toggle-btn + .input-group-text {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        /* При фокус върху грешно поле, рамката на съседите също да свети (опционално) */
+        .form-control.is-invalid:focus + .password-toggle-btn,
+        .form-control.is-invalid:focus + .input-group-text,
+        .form-control.is-invalid:focus + .password-toggle-btn + .input-group-text {
+            border-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    {% block content %}
+    {% endblock %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Tooltips Script -->
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+
+<!-- НОВО: Скрипт за показване/скриване на паролата -->
+<script>
+    function togglePassword(btn) {
+        // Намираме инпута, който е в същата група (преди бутона)
+        var input = btn.parentElement.querySelector('input');
+        var icon = btn.querySelector('i');
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="m-0"><i class="bi bi-collection text-primary"></i> Управление на въпроси</h4>
+
+        <!-- Търсачка -->
+        <form class="d-flex" method="get" id="search-form">
+            <input class="form-control me-2"
+                   type="search"
+                   name="q"
+                   id="search-input"
+                   value="{{ query|default:'' }}"
+                   placeholder="Търси въпрос..."
+                   autocomplete="off">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+
+    <!-- Контейнер за резултати -->
+    <div id="results-container">
+        {% include "includes/admin_questions_list.html" %}
+    </div>
+{% endblock %}

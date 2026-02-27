@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+    <!-- Търсачка - optimized for mobile: no overflow, gap instead of margin -->
+    <div class="row mb-4 g-0">
+        <div class="col-12 col-md-8 mx-auto px-2">
+            <form class="d-flex gap-2" role="search" action="{% url 'home' %}" method="get" id="search-form">
+                <input class="form-control py-2"
+                       type="search"
+                       name="q"
+                       id="search-input"
+                       value="{{ query|default:'' }}"
+                       placeholder="Търси въпрос или таг..."
+                       aria-label="Search"
+                       autocomplete="off"
+                       style="min-width: 0;"> <!-- allows shrinking -->
+                <button class="btn btn-primary px-3 px-sm-4 flex-shrink-0" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Съобщение за резултати (ако е заредено с query параметър при рефреш) -->
+    {% if query %}
+        <div class="row mb-3">
+            <div class="col-md-10 mx-auto px-3">
+                <h5 class="text-muted">
+                    Резултати от търсенето за: <span class="text-primary fw-bold">"{{ query }}"</span>
+                    <a href="{% url 'home' %}" class="small text-decoration-none ms-2 text-secondary">(Изчисти)</a>
+                </h5>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Списък с въпроси -->
+    <div class="row g-0">
+        <div class="col-12 col-md-10 mx-auto px-2" id="results-container">
+            {% include "includes/question_list.html" %}
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Потвърждение за изтриване
+                </div>
+                <div class="card-body text-center p-4">
+
+                    <!-- Заглавие -->
+                    <h5 class="card-title mb-3">
+                        {% if type == 'user' %}
+                            Изтриване на потребител
+                        {% else %}
+                            Сигурни ли сте, че искате да изтриете това?
+                        {% endif %}
+                    </h5>
+
+                    <!-- Информация за обекта -->
+                    <div class="text-danger border p-2 rounded bg-light fw-bold mb-3">
+                        {% if type == 'question' %}
+                            "{{ object.title }}"
+                        {% elif type == 'answer' %}
+                            "{{ object.content|truncatechars:50 }}"
+                        {% elif type == 'user' %}
+                            User: <span id="target-username" class="text-danger select-all">{{ object.username }}</span>
+                        {% elif type == 'tag' %}
+                            "#{{ object.name }}"
+                        {% elif type == 'report' %}
+                            Report: "{{ object.get_reason_display }}" by {{ object.reporter.username }}
+                        {% endif %}
+                    </div>
+
+                    <!-- Съобщение за грешка (ако има) -->
+                    {% if error %}
+                        <div class="alert alert-danger py-2 small">{{ error }}</div>
+                    {% endif %}
+
+                    <p class="text-danger small">Това действие е необратимо!</p>
+
+                    <form method="post" autocomplete="off">
+                        {% csrf_token %}
+
+                        <!-- СПЕЦИАЛНО ПОЛЕ ЗА ПОТРЕБИТЕЛИ -->
+                        {% if type == 'user' %}
+                            <div class="mb-4 text-start">
+                                <label class="form-label small text-muted">
+                                    За да потвърдите, напишете <strong>{{ object.username }}</strong> по-долу:
+                                </label>
+                                <input type="text"
+                                       name="confirmation_text"
+                                       id="confirm-input"
+                                       class="form-control"
+                                       placeholder="Въведете потребителското име тук">
+                            </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            <a href="javascript:history.back()" class="btn btn-secondary px-4">Отказ</a>
+
+                            <!-- Бутонът за изтриване -->
+                            <!-- Ако е user, бутонът е disabled по подразбиране -->
+                            <button type="submit"
+                                    id="delete-btn"
+                                    class="btn btn-danger px-4"
+                                    {% if type == 'user' %}disabled{% endif %}>
+                                Да, изтрий
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипт за проверка на името (само за user) -->
+    {% if type == 'user' %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const input = document.getElementById('confirm-input');
+                const btn = document.getElementById('delete-btn');
+                const targetName = "{{ object.username }}";
+
+                input.addEventListener('input', function () {
+                    // Ако въведеното съвпада с името -> активирай бутона
+                    if (input.value === targetName) {
+                        btn.removeAttribute('disabled');
+                    } else {
+                        btn.setAttribute('disabled', 'true');
+                    }
+                });
+            });
+        </script>
+    {% endif %}
+
+    <style>
+        /* Позволява лесно копиране на името */
+        .select-all {
+            user-select: all;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}

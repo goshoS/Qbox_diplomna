@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container">
+        <!-- ПОПРАВКА: Махнахме text-dark, сега ще е бяло на тъмно -->
+        <h3 class="mb-4 fw-bold">Настройки на акаунта</h3>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row g-4">
+
+            <!-- КАРТА 1: Профил -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <!-- ПОПРАВКА: Махнахме bg-white -->
+                    <div class="card-header py-3 fw-bold">
+                        <i class="bi bi-person-vcard text-primary me-2"></i> Редакция на профила
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Потребителско име</label>
+                                {{ profile_form.username }}
+                                <div class="form-text text-muted">{{ profile_form.username.help_text }}</div>
+                                {% if profile_form.username.errors %}
+                                    <div class="text-danger small">{{ profile_form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Имейл адрес</label>
+                                {{ profile_form.email }}
+                                {% if profile_form.email.errors %}
+                                    <div class="text-danger small">{{ profile_form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <button type="submit" name="update_profile" class="btn btn-primary w-100 mt-3">
+                                Запази промените
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- КАРТА 2: Парола -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <!-- ПОПРАВКА: Махнахме bg-white -->
+                    <div class="card-header py-3 fw-bold">
+                        <i class="bi bi-shield-lock text-danger me-2"></i> Сигурност и Парола
+                    </div>
+                    <div class="card-body">
+                        <form method="post" novalidate id="password-form">
+                            {% csrf_token %}
+
+                            {% for field in password_form %}
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted">{{ field.label }}</label>
+                                    {{ field }}
+
+                                    {% if field.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in field.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+
+                                    <!-- ВИЗУАЛИЗАЦИЯ ЗА НОВА ПАРОЛА -->
+                                    {% if field.name == 'new_password1' %}
+                                        <div class="mt-2" id="strength-container" style="display: none;">
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" id="strength-bar" role="progressbar"
+                                                     style="width: 0%; transition: width 0.3s, background-color 0.3s;"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-1">
+                                                <small class="text-muted" id="strength-text">Въведете парола</small>
+                                                <small class="text-muted" id="char-count">0 / 80</small>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+                                    <!-- ГРЕШКА ЗА ПОТВЪРЖДЕНИЕ -->
+                                    {% if field.name == 'new_password2' %}
+                                        <div id="match-error" class="text-danger small mt-1" style="display: none;">
+                                            <i class="bi bi-exclamation-triangle-fill"></i> Паролите не съвпадат
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+
+                            <button type="submit" name="change_password" class="btn btn-outline-danger w-100 mt-3"
+                                    id="pass-submit-btn">
+                                Смени паролата
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CSS за полетата -->
+    <style>
+        input[type="password"], input[type="text"], input[type="email"] {
+            display: block;
+            width: 100%;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+
+            color: var(--bs-input-color) !important;
+            background-color: var(--bs-input-bg) !important;
+            border: 1px solid var(--bs-input-border) !important;
+
+            background-clip: padding-box;
+            border-radius: 0.375rem;
+            transition: border-color .15s ease-in-out;
+        }
+
+        input:focus {
+            border-color: #86b7fe !important;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
+            background-color: var(--bs-input-bg) !important;
+            color: var(--bs-input-color) !important;
+        }
+
+        input.is-invalid {
+            border-color: #dc3545 !important;
+        }
+    </style>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const newPassInput = document.getElementById('id_new_password1');
+            const confirmPassInput = document.getElementById('id_new_password2');
+            const oldPassInput = document.getElementById('id_old_password');
+            const submitBtn = document.getElementById('pass-submit-btn');
+
+            // НОВО: Слагаме лимит от 80 символа на всички полета за парола
+            if (newPassInput) newPassInput.setAttribute("maxlength", "80");
+            if (confirmPassInput) confirmPassInput.setAttribute("maxlength", "80");
+            if (oldPassInput) oldPassInput.setAttribute("maxlength", "80");
+
+            const strengthContainer = document.getElementById('strength-container');
+            const strengthBar = document.getElementById('strength-bar');
+            const strengthText = document.getElementById('strength-text');
+            const charCount = document.getElementById('char-count');
+            const matchError = document.getElementById('match-error');
+
+            function updateStrength() {
+                const val = newPassInput.value;
+
+                if (val.length > 0) {
+                    strengthContainer.style.display = 'block';
+                } else {
+                    strengthContainer.style.display = 'none';
+                    return;
+                }
+
+                // Проверка за дължина (8 - 80)
+                charCount.textContent = `${val.length} / 80`;
+
+                if (val.length < 8) {
+                    charCount.classList.add('text-danger');
+                    charCount.classList.remove('text-success');
+                    strengthBar.style.width = '10%';
+                    strengthBar.className = 'progress-bar bg-danger';
+                    strengthText.textContent = 'Твърде кратка';
+                    submitBtn.disabled = true;
+                    return;
+                } else if (val.length > 80) {
+                    // Това е само за всеки случай, maxlength атрибутът трябва да го спре
+                    strengthText.textContent = 'Твърде дълга';
+                    submitBtn.disabled = true;
+                    return;
+                } else {
+                    charCount.classList.remove('text-danger');
+                    charCount.classList.add('text-success');
+                    submitBtn.disabled = false;
+                }
+
+                // Бонус точки
+                let score = 0;
+                if (/[A-Z]/.test(val)) score++;
+                if (/[0-9]/.test(val)) score++;
+                if (/[^A-Za-z0-9]/.test(val)) score++;
+                if (val.length > 12) score++;
+
+                if (score === 0) {
+                    strengthBar.style.width = '25%';
+                    strengthBar.className = 'progress-bar bg-danger';
+                    strengthText.textContent = 'Слаба';
+                } else if (score === 1) {
+                    strengthBar.style.width = '50%';
+                    strengthBar.className = 'progress-bar bg-warning';
+                    strengthText.textContent = 'Средна';
+                } else if (score === 2) {
+                    strengthBar.style.width = '75%';
+                    strengthBar.className = 'progress-bar bg-info';
+                    strengthText.textContent = 'Добра';
+                } else {
+                    strengthBar.style.width = '100%';
+                    strengthBar.className = 'progress-bar bg-success';
+                    strengthText.textContent = 'Силна';
+                }
+
+                if (confirmPassInput.value) checkMatch();
+            }
+
+            function checkMatch() {
+                if (!confirmPassInput.value) {
+                    matchError.style.display = 'none';
+                    confirmPassInput.classList.remove('is-invalid');
+                    return;
+                }
+
+                if (newPassInput.value !== confirmPassInput.value) {
+                    matchError.style.display = 'block';
+                    confirmPassInput.classList.add('is-invalid');
+                    submitBtn.disabled = true;
+                } else {
+                    matchError.style.display = 'none';
+                    confirmPassInput.classList.remove('is-invalid');
+                    if (newPassInput.value.length >= 8 && newPassInput.value.length <= 80) {
+                        submitBtn.disabled = false;
+                    }
+                }
+            }
+
+            if (newPassInput) {
+                newPassInput.addEventListener('input', updateStrength);
+            }
+            if (confirmPassInput) {
+                confirmPassInput.addEventListener('input', checkMatch);
+                newPassInput.addEventListener('input', function () {
+                    if (confirmPassInput.value) checkMatch();
+                });
+            }
+        });
+    </script>
+{% endblock %}

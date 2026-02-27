@@ -1,0 +1,107 @@
+{% load humanize %}
+
+{% for question in questions %}
+    <div class="question-card {% if request.user == question.author %}own-question mt-4{% else %}mt-2{% endif %} position-relative shadow-sm">
+
+        {% if request.user == question.author %}
+            <div class="own-question-badge">Твоят въпрос</div>
+        {% endif %}
+
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row">
+
+                <div class="d-flex flex-row flex-md-column align-items-center align-items-md-start me-0 me-md-4 mb-3 mb-md-0 pt-1">
+
+                    <div class="d-flex align-items-center mb-0 mb-md-2 me-3 me-md-0">
+                        <span class="fw-bold small me-2 like-count-{{ question.id }}">{{ question.total_likes }}</span>
+                        <button class="btn btn-link text-decoration-none p-0 vote-btn" data-type="question"
+                                data-id="{{ question.id }}" data-action="like">
+                            {% if request.user in question.likes.all %}
+                                <i class="bi bi-hand-thumbs-up-fill fs-5 text-primary"></i>
+                            {% else %}
+                                <i class="bi bi-hand-thumbs-up-fill fs-5 text-secondary"></i>
+                            {% endif %}
+                        </button>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                        <span class="fw-bold small me-2 dislike-count-{{ question.id }}">{{ question.total_dislikes }}</span>
+                        <button class="btn btn-link text-decoration-none p-0 vote-btn" data-type="question"
+                                data-id="{{ question.id }}" data-action="dislike">
+                            {% if request.user in question.dislikes.all %}
+                                <i class="bi bi-hand-thumbs-down-fill fs-5 text-danger"></i>
+                            {% else %}
+                                <i class="bi bi-hand-thumbs-down-fill fs-5 text-secondary"></i>
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex-grow-1 position-relative" style="min-width: 0;">
+                    <h5 class="card-title mb-2 pe-5" style="word-wrap: break-word; word-break: break-word;">
+                        <a href="{% url 'question_detail' question.id %}"
+                           class="text-decoration-none text-body fw-bold stretched-link">
+                            {{ question.title|truncatechars:50 }}
+                        </a>
+                    </h5>
+
+                    <p class="text-secondary mb-3"
+                       style="width: 100%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; hyphens: auto; font-size: 0.95rem; opacity: 0.8;">
+                        {{ question.content|truncatechars:120 }}
+                    </p>
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-auto">
+                        <div class="d-flex gap-2 flex-wrap">
+                            {% for tag in question.tags.all %}
+                                <a href="{% url 'home' %}?q={{ tag.name }}" class="tag-badge"
+                                   style="position: relative; z-index: 2; margin: 0;">
+                                    #{{ tag.name }}
+                                </a>
+                            {% endfor %}
+                        </div>
+
+                        <div class="small text-muted d-flex align-items-center">
+                            {% if question.author %}
+                                <div class="micro-avatar me-2"
+                                     style="background-color: #fd7e14; width: 20px; height: 20px; font-size: 0.6rem;">
+                                    {{ question.author.username|make_list|first|upper }}
+                                </div>
+                                <span class="text-nowrap">{{ question.author.username }} • {{ question.created_at|naturaltime }}</span>
+                            {% else %}
+                                <div class="micro-avatar me-2"
+                                     style="background-color: #6c757d; width: 20px; height: 20px; font-size: 0.6rem;">?
+                                </div>
+                                <span class="fst-italic text-danger">Изтрит • {{ question.created_at|naturaltime }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="position-absolute top-0 end-0 ps-2 pt-0 pe-0 d-flex gap-1 gap-md-2"
+                         style="z-index: 10;">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'create_report' 'question' question.id %}"
+                               class="btn btn-sm text-secondary p-1" title="Докладвай">
+                                <i class="bi bi-flag"></i>
+                            </a>
+                        {% endif %}
+
+                        {% if request.user == question.author %}
+                            <a href="{% url 'edit_question' question.id %}"
+                               class="btn btn-sm text-secondary p-1" title="Редактирай">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'delete_question' question.id %}"
+                               class="btn btn-sm text-danger p-1" title="Изтрий">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% empty %}
+    <div class="text-center py-5 text-muted">
+        <div class="mb-3"><i class="bi bi-inbox fs-1"></i></div>
+        <h4>Няма намерени резултати.</h4>
+    </div>
+{% endfor %}

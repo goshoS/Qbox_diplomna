@@ -1,0 +1,138 @@
+<!-- ЛОГО -->
+<a href="{% if user.is_admin or user.is_superuser %}{% url 'manage_users' %}{% else %}{% url 'home' %}{% endif %}"
+   class="text-decoration-none mb-3 d-block px-2">
+    <h3 class="fw-bold text-primary m-0">Qbox</h3>
+</a>
+
+<!-- Бутон Задай въпрос -->
+{% if user.is_authenticated %}
+    <div class="px-2 mb-4">
+        <a href="{% url 'ask_question' %}" class="btn btn-primary w-100 shadow-sm">
+            <i class="bi bi-plus-lg"></i> Задай въпрос
+        </a>
+    </div>
+{% endif %}
+
+<div class="nav flex-column">
+
+    {% if user.is_admin or user.is_superuser %}
+        <div class="text-uppercase text-muted small fw-bold px-3 mb-2">Администрация</div>
+        <a href="{% url 'manage_users' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'manage_users' %}active{% endif %}">
+            <i class="bi bi-people"></i> Потребители
+        </a>
+        <a href="{% url 'manage_questions' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'manage_questions' %}active{% endif %}">
+            <i class="bi bi-collection"></i> Въпроси
+        </a>
+        <a href="{% url 'manage_tags' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'manage_tags' %}active{% endif %}">
+            <i class="bi bi-tags"></i> Тагове
+        </a>
+        <a href="{% url 'manage_reports' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'manage_reports' %}active{% endif %}">
+            <i class="bi bi-exclamation-octagon"></i> Доклади
+        </a>
+    {% else %}
+        <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <i class="bi bi-house-door"></i> Начало
+        </a>
+        <a href="{% url 'popular_questions' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'popular_questions' %}active{% endif %}">
+            <i class="bi bi-fire"></i> Най-популярни
+        </a>
+        <a href="{% url 'recent_questions' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'recent_questions' %}active{% endif %}">
+            <i class="bi bi-clock-history"></i> Най-скорошни
+        </a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'my_questions' %}"
+               class="nav-link {% if request.resolver_match.url_name == 'my_questions' %}active{% endif %}">
+                <i class="bi bi-person-lines-fill"></i> Моите въпроси
+            </a>
+            <a href="{% url 'liked_questions' %}"
+               class="nav-link {% if request.resolver_match.url_name == 'liked_questions' %}active{% endif %}">
+                <i class="bi bi-heart"></i> Харесани
+            </a>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- Секция Популярни Тагове -->
+{% if not user.is_admin and not user.is_superuser %}
+    <div class="mt-4 px-2">
+        <label class="text-muted fw-bold small text-uppercase mb-2">Популярни тагове</label>
+        <div class="d-flex flex-wrap gap-2">
+            {% for tag in popular_tags %}
+                <a href="{% url 'home' %}?q={{ tag.name }}" class="tag-badge">#{{ tag.name }}</a>
+            {% empty %}
+                <small class="text-muted">Няма тагове</small>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+<!-- Потребителско меню -->
+<div class="user-menu-container">
+    {% if user.is_authenticated %}
+        <div class="dropdown dropup">
+            <button class="user-btn dropdown-toggle" type="button" id="dropdownUser1"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="user-avatar-circle flex-shrink-0">
+                    <span>{{ user.username|make_list|first|upper }}</span>
+                </div>
+                <div class="d-flex flex-column text-truncate" style="line-height: 1.2; min-width: 0;">
+                    <span class="fw-bold text-truncate" style="font-size: 0.95rem;">
+                        {% if user.first_name %}
+                            {{ user.first_name }} {{ user.last_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </span>
+                    <span class="text-muted small text-truncate">@{{ user.username }}</span>
+                </div>
+                <i class="bi bi-three-dots ms-auto text-muted flex-shrink-0"></i>
+            </button>
+
+            <ul class="dropdown-menu custom-dropdown-menu shadow" aria-labelledby="dropdownUser1">
+                <li class="px-3 py-2 border-bottom mb-2">
+                    <div class="fw-bold text-truncate">{{ user.username }}</div>
+                    <div class="small text-muted text-truncate">{{ user.email }}</div>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{% url 'personalization_settings' %}">
+                        <i class="bi bi-palette"></i> Персонализация
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{% url 'profile_settings' %}">
+                        <i class="bi bi-gear"></i> Настройки
+                    </a>
+                </li>
+                <li>
+                    <hr class="dropdown-divider my-2">
+                </li>
+                <li>
+                    <form action="{% url 'logout' %}" method="post" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item text-danger">
+                            <i class="bi bi-box-arrow-right text-danger"></i> Изход
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    {% else %}
+        <div class="p-1">
+            <p class="small text-muted mb-2 text-center">Присъедини се към общността!</p>
+            <div class="d-grid gap-2">
+                <a href="{% url 'login' %}" class="btn btn-primary fw-bold shadow-sm">
+                    <i class="bi bi-box-arrow-in-right"></i> Вход
+                </a>
+                <a href="{% url 'register' %}" class="btn btn-outline-primary fw-bold">
+                    <i class="bi bi-person-plus"></i> Регистрация
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>

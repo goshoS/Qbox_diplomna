@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 mt-3">
+                <div class="card-body p-4">
+                    <h3 class="card-title mb-4">Задай въпрос</h3>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Заглавие -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Заглавие</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small">{{ form.title.errors }}</div>
+                            {% endif %}
+                            <div class="form-text text-muted">Бъди конкретен и си представи, че задаваш въпрос на друг
+                                човек.
+                            </div>
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Описание</label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="text-danger small">{{ form.content.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Тагове -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Тагове</label>
+                            {{ form.tags }}
+                            {% if form.tags.errors %}
+                                <div class="text-danger small">{{ form.tags.errors }}</div>
+                            {% endif %}
+                            <div class="form-text text-muted">{{ form.tags.help_text }}</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <!-- Логика за бутона Отказ: Админ -> Админ панел, User -> Home -->
+                            {% if user.is_admin or user.is_superuser %}
+                                <a href="{% url 'manage_users' %}" class="btn btn-outline-secondary">Отказ</a>
+                            {% else %}
+                                <a href="{% url 'home' %}" class="btn btn-outline-secondary">Отказ</a>
+                            {% endif %}
+
+                            <button type="submit" class="btn btn-primary px-4">Публикувай въпроса</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипт за Tagify -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var input = document.querySelector('input[name=tags]');
+
+            fetch('{% url "tag_list_api" %}')
+                .then(response => response.json())
+                .then(whitelist => {
+                    var tagify = new Tagify(input, {
+                        whitelist: whitelist,
+                        maxTags: 10,
+                        dropdown: {
+                            maxItems: 20,
+                            classname: "tags-look",
+                            enabled: 0,
+                            closeOnSelect: false
+                        }
+                    });
+                });
+        });
+    </script>
+{% endblock %}

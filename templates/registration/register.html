@@ -1,0 +1,264 @@
+{% extends "base_auth.html" %}
+
+{% block title %}Регистрация - Qbox{% endblock %}
+
+{% block content %}
+    <h2 class="auth-title">Създай акаунт</h2>
+
+    <form method="post" novalidate id="register-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% for field in form %}
+            <div class="mb-3">
+
+                <!-- ВАРИАНТ 1: Ако полето е Checkbox (Условия) -->
+                {% if field.name == 'terms_confirmed' %}
+                    <div class="form-check">
+                        {{ field }} <!-- Самият чекбокс -->
+                        <label class="form-check-label" for="{{ field.id_for_label }}">
+                            {{ field.label }} <!-- Текстът с линка -->
+                        </label>
+                    </div>
+                    <!-- Грешка, ако не е чекнато -->
+                    {% if field.errors %}
+                        <div class="text-danger small mt-1">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Трябва да приемете условията, за да
+                            продължите.
+                        </div>
+                    {% endif %}
+
+                    <!-- ВАРИАНТ 2: Стандартни полета (Username, Email, Password) -->
+                {% else %}
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+
+                    <div class="input-group">
+                        <input type="{{ field.field.widget.input_type }}"
+                               name="{{ field.name }}"
+                               id="{{ field.id_for_label }}"
+                               class="form-control {% if field.errors %}is-invalid{% endif %}"
+                               value="{{ field.value|default_if_none:'' }}"
+                               {% if field.field.required %}required{% endif %}
+                               {% if 'password' in field.name %}maxlength="80"{% endif %}
+                               data-field="{% if 'username' in field.name %}username{% elif 'email' in field.name %}email{% endif %}">
+
+                        <!-- Бутон Око -->
+                        {% if 'password' in field.name %}
+                            <button type="button" class="btn password-toggle-btn" onclick="togglePassword(this)">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        {% endif %}
+
+                        <!-- Балонче с инфо -->
+                        {% if field.help_text and 'password' not in field.name %}
+                            <span class="input-group-text"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-placement="right"
+                                  title="{{ field.help_text }}">
+                                <i class="bi bi-exclamation-circle"></i>
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Грешки от сървъра -->
+                    <div class="error-container" id="error-{{ field.name }}">
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="error-text"><i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Визуализация за парола -->
+                    {% if 'password1' in field.name %}
+                        <div class="mt-2" id="strength-container" style="display: none;">
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar" id="strength-bar" role="progressbar"
+                                     style="width: 0%; transition: width 0.3s, background-color 0.3s;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted" id="strength-text">Въведете парола</small>
+                                <small class="text-muted" id="char-count">0 / 80</small>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Грешка за несъвпадение -->
+                    {% if 'password2' in field.name %}
+                        <div id="match-error" class="text-danger small mt-1" style="display: none;">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Паролите не съвпадат
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary" id="submit-btn">Регистрирай се</button>
+    </form>
+
+    <div class="mt-4 text-center">
+        <p class="text-muted">Вече имаш акаунт? <a href="{% url 'login' %}" class="text-decoration-none">Влез тук</a>.
+        </p>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // Полета
+            const usernameInput = document.getElementById('id_username');
+            const emailInput = document.getElementById('id_email');
+            const pass1Input = document.getElementById('id_password1');
+            const pass2Input = document.getElementById('id_password2'); // Django обикновено генерира това ID за втората парола
+            const submitBtn = document.getElementById('submit-btn');
+
+            // Елементи за сила на паролата
+            const strengthContainer = document.getElementById('strength-container');
+            const strengthBar = document.getElementById('strength-bar');
+            const strengthText = document.getElementById('strength-text');
+            const charCount = document.getElementById('char-count');
+            const matchError = document.getElementById('match-error');
+
+            // --- 1. AJAX ВАЛИДАЦИЯ (Username & Email) ---
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            const validateAsync = debounce(function (input) {
+                const fieldName = input.getAttribute('data-field');
+                const value = input.value;
+                const errorContainer = document.getElementById('error-' + input.name);
+
+                if (!value) {
+                    input.classList.remove('is-invalid');
+                    errorContainer.innerHTML = '';
+                    return;
+                }
+
+                fetch('{% url "validate_registration" %}', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken},
+                    body: JSON.stringify({'field': fieldName, 'value': value})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.is_valid) {
+                            input.classList.remove('is-invalid');
+                            errorContainer.innerHTML = '';
+                        } else {
+                            input.classList.add('is-invalid');
+                            errorContainer.innerHTML = `<div class="error-text"><i class="bi bi-exclamation-triangle-fill"></i> ${data.error_msg}</div>`;
+                        }
+                    });
+            }, 500);
+
+            if (usernameInput) usernameInput.addEventListener('input', () => validateAsync(usernameInput));
+            if (emailInput) emailInput.addEventListener('input', () => validateAsync(emailInput));
+
+
+            // --- 2. ВИЗУАЛИЗАЦИЯ НА ПАРОЛАТА ---
+            function updateStrength() {
+                const val = pass1Input.value;
+
+                if (val.length > 0) {
+                    strengthContainer.style.display = 'block';
+                } else {
+                    strengthContainer.style.display = 'none';
+                    return;
+                }
+
+                // Дължина (Задължително)
+                charCount.textContent = `${val.length} / 80`;
+                if (val.length < 8) {
+                    charCount.classList.add('text-danger');
+                    charCount.classList.remove('text-success');
+                    strengthBar.style.width = '10%';
+                    strengthBar.className = 'progress-bar bg-danger';
+                    strengthText.textContent = 'Твърде кратка';
+                    submitBtn.disabled = true;
+                    return;
+                } else if (val.length > 80) {
+                    // Проверка за максимум
+                    charCount.classList.add('text-danger');
+                    strengthText.textContent = 'Твърде дълга';
+                    submitBtn.disabled = true;
+                    return;
+                } else {
+                    charCount.classList.remove('text-danger');
+                    charCount.classList.add('text-success');
+                    submitBtn.disabled = false;
+                }
+
+                // Бонус точки
+                let score = 0;
+                if (/[A-Z]/.test(val)) score++;
+                if (/[0-9]/.test(val)) score++;
+                if (/[^A-Za-z0-9]/.test(val)) score++;
+                if (val.length > 12) score++;
+
+                // Цветове
+                if (score === 0) {
+                    strengthBar.style.width = '25%';
+                    strengthBar.className = 'progress-bar bg-danger';
+                    strengthText.textContent = 'Слаба';
+                } else if (score === 1) {
+                    strengthBar.style.width = '50%';
+                    strengthBar.className = 'progress-bar bg-warning';
+                    strengthText.textContent = 'Средна';
+                } else if (score === 2) {
+                    strengthBar.style.width = '75%';
+                    strengthBar.className = 'progress-bar bg-info';
+                    strengthText.textContent = 'Добра';
+                } else {
+                    strengthBar.style.width = '100%';
+                    strengthBar.className = 'progress-bar bg-success';
+                    strengthText.textContent = 'Силна';
+                }
+
+                if (pass2Input.value) checkMatch();
+            }
+
+            function checkMatch() {
+                if (!pass2Input.value) {
+                    matchError.style.display = 'none';
+                    pass2Input.classList.remove('is-invalid');
+                    return;
+                }
+
+                if (pass1Input.value !== pass2Input.value) {
+                    matchError.style.display = 'block';
+                    pass2Input.classList.add('is-invalid');
+                    submitBtn.disabled = true;
+                } else {
+                    matchError.style.display = 'none';
+                    pass2Input.classList.remove('is-invalid');
+                    // Разрешаваме бутона само ако и дължината е ОК
+                    if (pass1Input.value.length >= 8) {
+                        submitBtn.disabled = false;
+                    }
+                }
+            }
+
+            if (pass1Input) pass1Input.addEventListener('input', updateStrength);
+            if (pass2Input) {
+                pass2Input.addEventListener('input', checkMatch);
+                pass1Input.addEventListener('input', function () {
+                    if (pass2Input.value) checkMatch();
+                });
+            }
+        });
+    </script>
+{% endblock %}

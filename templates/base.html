@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<!-- data-bs-theme взима стойността от базата данни -->
+<html lang="bg" data-bs-theme="{% if user.is_authenticated %}{{ user.theme }}{% else %}light{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qbox</title>
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <!-- Tagify CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css"/>
+
+    <style>
+        /* =========================================
+           1. ГЛОБАЛНИ НАСТРОЙКИ
+           ========================================= */
+        :root {
+            --bs-body-bg: #f8f9fa;
+            --bs-body-color: #212529;
+            --bs-border-color: #dee2e6;
+            --bs-tertiary-bg: #ffffff;
+            --bs-card-bg: #ffffff;
+            --bs-input-bg: #ffffff;
+            --bs-input-color: #212529;
+            --bs-input-border: #ced4da;
+        }
+
+        [data-bs-theme="dark"] {
+            --bs-body-bg: #131314;
+            --bs-body-color: #e3e3e3;
+            --bs-border-color: #444746;
+            --bs-tertiary-bg: #1e1f20;
+            --bs-card-bg: #252627;
+            --bs-input-bg: #2d2e2f;
+            --bs-input-color: #e3e3e3;
+            --bs-input-border: #444746;
+        }
+
+        body {
+            /* ПРЕМАХНАТО: transition: ... (Това причиняваше мигането) */
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
+        }
+
+        main {
+            background-color: var(--bs-body-bg) !important;
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            overflow-y: auto;
+            background-color: var(--bs-tertiary-bg);
+            border-right: 1px solid var(--bs-border-color);
+        }
+
+        .nav-link {
+            color: var(--bs-body-color);
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.2s, color 0.2s;
+            padding: 0.8rem 1rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+        }
+
+        [data-bs-theme="dark"] .nav-link.active {
+            color: #8ab4f8;
+            background-color: rgba(138, 180, 248, 0.1);
+        }
+
+        /* --- КОМПОНЕНТИ --- */
+        .card {
+            background-color: var(--bs-card-bg);
+            border-color: var(--bs-border-color);
+        }
+
+        .card-header {
+            background-color: var(--bs-tertiary-bg);
+            border-bottom: 1px solid var(--bs-border-color);
+            color: var(--bs-body-color);
+        }
+
+        .table {
+            --bs-table-color: var(--bs-body-color);
+            --bs-table-bg: var(--bs-card-bg);
+            --bs-table-border-color: var(--bs-border-color);
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
+            color: var(--bs-body-color);
+        }
+
+        thead th {
+            background-color: var(--bs-tertiary-bg) !important;
+            color: var(--bs-body-color) !important;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+
+        /* --- ФОРМИ --- */
+        .form-control, .form-select, textarea {
+            background-color: var(--bs-input-bg) !important;
+            border-color: var(--bs-input-border) !important;
+            color: var(--bs-input-color) !important;
+            border-radius: 10px;
+        }
+
+        .form-control:focus {
+            border-color: #8ab4f8 !important;
+            box-shadow: 0 0 0 0.25rem rgba(138, 180, 248, 0.15);
+        }
+
+        /* Tagify */
+        .tagify {
+            width: 100%;
+            border-radius: 0.375rem;
+            --tags-border-color: var(--bs-input-border);
+            --tags-focus-border-color: #86b7fe;
+            --tag-bg: var(--bs-input-bg);
+            --tag-hover: var(--bs-tertiary-bg);
+            --tag-text-color: var(--bs-input-color);
+            --placeholder-color: #9aa0a6;
+            background-color: var(--bs-input-bg);
+            color: var(--bs-input-color);
+        }
+
+        .tagify__input {
+            color: var(--bs-input-color) !important;
+        }
+
+        .tagify__dropdown__wrapper {
+            border-radius: 0.375rem;
+            border: 1px solid var(--bs-border-color);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            background-color: var(--bs-card-bg);
+            color: var(--bs-body-color);
+        }
+
+        /* --- ПРОФИЛ МЕНЮ --- */
+        .user-menu-container {
+            margin-top: auto;
+            padding: 0.5rem;
+            border-top: 1px solid var(--bs-border-color);
+        }
+
+        .user-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
+            border-radius: 12px;
+            color: var(--bs-body-color);
+            text-decoration: none;
+            border: none;
+            background: transparent;
+            text-align: left;
+        }
+
+        .user-btn:hover {
+            background-color: rgba(128, 128, 128, 0.1);
+        }
+
+        .user-avatar-circle {
+            width: 36px;
+            height: 36px;
+            background-color: #fd7e14;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .dropdown-toggle::after {
+            display: none;
+        }
+
+        .custom-dropdown-menu {
+            border-radius: 16px;
+            padding: 8px;
+            border: 1px solid var(--bs-border-color);
+            background-color: var(--bs-card-bg);
+            /* Анимация за менюто */
+            animation: fadeInUp 0.2s ease-out;
+            transform-origin: bottom center;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            border-radius: 6px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            color: var(--bs-body-color);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--bs-tertiary-bg);
+        }
+
+        .dropdown-item i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+
+        /* --- ДРУГИ --- */
+        .tag-badge {
+            background-color: rgba(13, 110, 253, 0.08);
+            color: #0d6efd;
+            text-decoration: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .tag-badge:hover {
+            background-color: #0d6efd;
+            color: white !important;
+        }
+
+        [data-bs-theme="dark"] .tag-badge {
+            color: #8ab4f8;
+            background-color: rgba(138, 180, 248, 0.08);
+        }
+
+        .question-card {
+            background-color: var(--bs-card-bg) !important;
+            border: 1px solid var(--bs-border-color) !important;
+            border-radius: 16px !important;
+            margin-bottom: 1.25rem;
+            padding: 1.25rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+        }
+
+        .question-card:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            background-color: rgba(255, 255, 255, 0.01) !important;
+        }
+
+        .question-card.own-question {
+            border: 1px solid #0d6efd !important;
+        }
+
+        [data-bs-theme="dark"] .question-card.own-question {
+            border-color: #8ab4f8 !important;
+        }
+
+        .own-question-badge {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background-color: #0d6efd;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 8px;
+            z-index: 5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .micro-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .form-control.is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        /* --- FOOTER --- */
+        .footer-link {
+            color: var(--bs-body-color);
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .footer-link:hover {
+            opacity: 1;
+            color: #0d6efd;
+        }
+
+        .social-icon {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: var(--bs-tertiary-bg);
+            color: var(--bs-body-color);
+            transition: all 0.2s;
+        }
+
+        .social-icon:hover {
+            background-color: #0d6efd;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* --- MOBILE SPECIFIC --- */
+        .mobile-navbar {
+            background-color: var(--bs-tertiary-bg);
+            border-bottom: 1px solid var(--bs-border-color);
+            padding: 0.8rem 1rem;
+            z-index: 1030;
+        }
+
+        .offcanvas {
+            background-color: var(--bs-tertiary-bg);
+            color: var(--bs-body-color);
+            max-width: 80%;
+        }
+
+        .offcanvas-body {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+        }
+
+        .offcanvas .dropdown-menu {
+            position: absolute !important;
+            bottom: 100% !important;
+            top: auto !important;
+            width: 100%;
+        }
+
+        /* Mobile tap targets */
+        button, .btn, .nav-link, .user-btn, .dropdown-item, [role=button] {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- 1. МОБИЛНА НАВИГАЦИЯ (Вижда се само на малки екрани: d-md-none) -->
+<nav class="navbar mobile-navbar d-md-none sticky-top">
+    <div class="container-fluid">
+        <button class="btn btn-link text-body p-0" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#mobileSidebar" aria-controls="mobileSidebar">
+            <i class="bi bi-list fs-1"></i>
+        </button>
+
+        <a class="navbar-brand fw-bold text-primary m-0" href="{% url 'home' %}">Qbox</a>
+
+        <!-- Малък аватар вдясно на мобилни -->
+        {% if user.is_authenticated %}
+            <div class="user-avatar-circle" style="width: 32px; height: 32px; font-size: 0.9rem; margin: 0;">
+                {{ user.username|make_list|first|upper }}
+            </div>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-sm btn-primary">Вход</a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- 2. OFFCANVAS (Скритото меню за мобилни) -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold text-primary" id="mobileSidebarLabel">Qbox</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <!-- Вмъкваме споделеното съдържание -->
+        {% include "includes/sidebar_content.html" %}
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- 3. DESKTOP SIDEBAR (Вижда се само на големи екрани: d-none d-md-flex) -->
+        <nav class="col-md-3 col-lg-2 sidebar d-none d-md-flex">
+            <!-- Вмъкваме споделеното съдържание -->
+            {% include "includes/sidebar_content.html" %}
+        </nav>
+
+        <!-- 4. ОСНОВЕН ПРОЗОРЕЦ (MAIN) -->
+        <main class="col-12 col-md-9 col-lg-10 ms-sm-auto min-vh-100 d-flex flex-column justify-content-between p-0">
+
+            <!-- СЪДЪРЖАНИЕ -->
+            <div class="px-3 px-md-4 py-4">
+                {% block content %}
+                {% endblock %}
+            </div>
+
+            <!-- FOOTER -->
+            <footer class="py-4 mt-auto border-top" style="background-color: var(--bs-tertiary-bg);">
+                <div class="container-fluid px-4">
+                    <div class="row align-items-center text-center text-md-start">
+
+                        <!-- Секция 1: Лого -->
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <a href="{% url 'home' %}"
+                               class="text-decoration-none d-flex align-items-center justify-content-center justify-content-md-start">
+                                <h4 class="fw-bold text-primary m-0">Qbox</h4>
+                            </a>
+                            <small class="text-muted d-block mt-1">&copy; 2026 Всички права запазени.</small>
+                        </div>
+
+                        <!-- Секция 2: Privacy Policy -->
+                        <div class="col-md-4 mb-3 mb-md-0 text-center">
+                            <a href="{% url 'privacy_policy' %}"
+                               class="text-decoration-none footer-link fw-bold small mx-2">Политика за поверителност</a>
+                            <span class="text-muted">•</span>
+                            <a href="{% url 'terms_of_service' %}"
+                               class="text-decoration-none footer-link fw-bold small mx-2">Условия за ползване</a>
+                        </div>
+
+                        <!-- Секция 3: Социални мрежи -->
+                        <div class="col-md-4 text-center text-md-end">
+                            <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer"
+                               class="text-decoration-none social-icon me-2"
+                               title="Facebook">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer"
+                               class="text-decoration-none social-icon me-2"
+                               title="Instagram">
+                                <i class="bi bi-instagram"></i>
+                            </a>
+                            <a href="https://mail.google.com/" target="_blank" rel="noopener noreferrer"
+                               class="text-decoration-none social-icon" title="Email">
+                                <i class="bi bi-envelope-fill"></i>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </footer>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
+
+<!-- AJAX Scripts -->
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    // Търсене
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('search-input');
+        const resultsContainer = document.getElementById('results-container');
+        if (searchInput && resultsContainer) {
+            let timeout = null;
+            searchInput.addEventListener('input', function () {
+                clearTimeout(timeout);
+                const query = this.value;
+                const url = window.location.pathname;
+                timeout = setTimeout(() => {
+                    fetch(`${url}?q=${encodeURIComponent(query)}`, {
+                        headers: {'X-Requested-With': 'XMLHttpRequest'}
+                    })
+                        .then(response => response.text())
+                        .then(html => {
+                            resultsContainer.innerHTML = html;
+                        });
+                }, 300);
+            });
+        }
+    });
+
+    // Гласуване
+    document.body.addEventListener('click', function (e) {
+        const button = e.target.closest('.vote-btn');
+        if (button) {
+            e.preventDefault();
+            const type = button.getAttribute('data-type');
+            const id = button.getAttribute('data-id');
+            const action = button.getAttribute('data-action');
+
+            fetch('{% url "vote" %}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken},
+                body: JSON.stringify({'type': type, 'id': id, 'action': action})
+            })
+                .then(response => {
+                    if (response.status === 403 || response.status === 401) window.location.href = "{% url 'login' %}";
+                    return response.json();
+                })
+                .then(data => {
+                    const container = button.closest('.d-flex.flex-column');
+                    const likeSpan = container.querySelector(`.like-count-${id}`);
+                    const dislikeSpan = container.querySelector(`.dislike-count-${id}`);
+                    if (likeSpan) likeSpan.textContent = data.total_likes;
+                    if (dislikeSpan) dislikeSpan.textContent = data.total_dislikes;
+                    const allBtns = container.querySelectorAll('.vote-btn i');
+                    allBtns.forEach(i => {
+                        i.classList.remove('text-primary', 'text-danger');
+                        i.classList.add('text-secondary');
+                    });
+                    if (data.user_liked) container.querySelector(`button[data-action="like"] i`).classList.replace('text-secondary', 'text-primary');
+                    if (data.user_disliked) container.querySelector(`button[data-action="dislike"] i`).classList.replace('text-secondary', 'text-danger');
+                });
+        }
+    });
+</script>
+</body>
+</html>

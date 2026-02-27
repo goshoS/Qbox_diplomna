@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+    <!-- NEW: CSS за маркиране на докладвания отговор (от новия код) -->
+    <style>
+        /* Когато URL-ът завършва на #answer-ID, този елемент ще светне */
+        .answer-card:target {
+            border: 2px solid #dc3545 !important; /* Червена рамка */
+            box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.2) !important; /* Леко сияние */
+            scroll-margin-top: 120px; /* За да не се скрие под горното меню при скрол */
+        }
+    </style>
+
+    <div class="container-fluid px-0">
+
+        <div class="card shadow-sm border-0 mb-4 question-card">
+            <div class="card-body p-4">
+                <div class="d-flex flex-column flex-md-row">
+
+                    <!-- VOTING COLUMN -->
+                    <div class="d-flex flex-row flex-md-column align-items-center align-items-md-start voting-column">
+                        <div class="d-flex align-items-center mb-md-2 me-3 me-md-0">
+                            <span class="fw-bold small me-2 like-count-{{ question.id }}">{{ question.total_likes }}</span>
+                            <button class="btn btn-link text-decoration-none p-0 vote-btn" data-type="question"
+                                    data-id="{{ question.id }}" data-action="like">
+                                {% if request.user in question.likes.all %}
+                                    <i class="bi bi-hand-thumbs-up-fill fs-5 text-primary"></i>
+                                {% else %}
+                                    <i class="bi bi-hand-thumbs-up-fill fs-5 text-secondary"></i>
+                                {% endif %}
+                            </button>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="fw-bold small me-2 dislike-count-{{ question.id }}">{{ question.total_dislikes }}</span>
+                            <button class="btn btn-link text-decoration-none p-0 vote-btn" data-type="question"
+                                    data-id="{{ question.id }}" data-action="dislike">
+                                {% if request.user in question.dislikes.all %}
+                                    <i class="bi bi-hand-thumbs-down-fill fs-5 text-danger"></i>
+                                {% else %}
+                                    <i class="bi bi-hand-thumbs-down-fill fs-5 text-secondary"></i>
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CONTENT COLUMN - ADDED ms-md-4 FOR SPACING -->
+                    <div class="flex-grow-1 position-relative ms-md-4" style="min-width: 0;">
+                        <h2 class="h4 fw-bold mb-3 text-body" style="word-wrap: break-word; word-break: break-word;">
+                            {{ question.title }}
+                        </h2>
+                        <div class="text-body mb-4"
+                             style="white-space: pre-wrap; word-wrap: break-word; hyphens: auto; opacity: 0.9;">{{ question.content }}</div>
+
+                        <div class="mb-4 d-flex gap-2 flex-wrap">
+                            {% for tag in question.tags.all %}
+                                <a href="{% url 'home' %}?q={{ tag.name }}" class="tag-badge">#{{ tag.name }}</a>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3 text-muted small flex-wrap gap-2">
+                            <div class="d-flex align-items-center">
+                                {% if question.author %}
+                                    <div class="micro-avatar me-2"
+                                         style="background-color: #fd7e14; width: 24px; height: 24px;">{{ question.author.username|make_list|first|upper }}</div>
+                                    <div>
+                                        <span class="fw-bold text-body">{{ question.author.username }}</span>
+                                        попита {{ question.created_at|naturaltime }}
+                                    </div>
+                                {% else %}
+                                    <div class="micro-avatar me-2"
+                                         style="background-color: #6c757d; width: 24px; height: 24px;">?
+                                    </div>
+                                    <div>
+                                        <span class="fst-italic text-danger">Изтрит потребител</span>
+                                        попита {{ question.created_at|naturaltime }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-flex gap-2 align-items-center">
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'create_report' 'question' question.id %}"
+                                       class="text-secondary text-decoration-none" title="Докладвай">
+                                        <i class="bi bi-flag"></i>
+                                    </a>
+                                {% endif %}
+
+                                {% if request.user == question.author %}
+                                    <a href="{% url 'edit_question' question.id %}"
+                                       class="text-secondary text-decoration-none" title="Редактирай"><i
+                                            class="bi bi-pencil"></i></a>
+                                    <a href="{% url 'delete_question' question.id %}"
+                                       class="text-danger text-decoration-none" title="Изтрий"><i
+                                            class="bi bi-trash"></i></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mb-3 ps-2">{{ answers.count }} Отговора</h4>
+
+        {% for answer in answers %}
+            <!-- NEW: Добавени id и клас answer-card за CSS :target функционалност -->
+            <div id="answer-{{ answer.id }}" class="card shadow-sm border-0 mb-3 question-card answer-card">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column flex-md-row">
+
+                        <!-- VOTING COLUMN - same class -->
+                        <div class="d-flex flex-row flex-md-column align-items-center align-items-md-start voting-column">
+                            <div class="d-flex align-items-center mb-md-2 me-3 me-md-0">
+                                <span class="fw-bold small me-2 like-count-{{ answer.id }}">{{ answer.total_likes }}</span>
+                                <button class="btn btn-link text-decoration-none p-0 vote-btn" data-type="answer"
+                                        data-id="{{ answer.id }}" data-action="like">
+                                    {% if request.user in answer.likes.all %}
+                                        <i class="bi bi-hand-thumbs-up-fill fs-5 text-primary"></i>{% else %}
+                                        <i class="bi bi-hand-thumbs-up-fill fs-5 text-secondary"></i>{% endif %}
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="fw-bold small me-2 dislike-count-{{ answer.id }}">{{ answer.total_dislikes }}</span>
+                                <button class="btn btn-link text-decoration-none p-0 vote-btn" data-type="answer"
+                                        data-id="{{ answer.id }}" data-action="dislike">
+                                    {% if request.user in answer.dislikes.all %}
+                                        <i class="bi bi-hand-thumbs-down-fill fs-5 text-danger"></i>{% else %}
+                                        <i class="bi bi-hand-thumbs-down-fill fs-5 text-secondary"></i>{% endif %}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- CONTENT COLUMN - ADDED ms-md-4 FOR SPACING -->
+                        <div class="flex-grow-1 ms-md-4" style="min-width: 0;">
+                            <div class="text-body mb-3"
+                                 style="white-space: pre-wrap; word-wrap: break-word; hyphens: auto; opacity: 0.9;">{{ answer.content }}</div>
+
+                            <div class="d-flex justify-content-between align-items-center border-top pt-3 text-muted small flex-wrap gap-2">
+                                <div class="d-flex align-items-center">
+                                    {% if answer.author %}
+                                        <div class="micro-avatar me-2"
+                                             style="background-color: #6c757d; width: 24px; height: 24px;">{{ answer.author.username|make_list|first|upper }}</div>
+                                        <div>
+                                            Отговор от <span
+                                                class="fw-bold text-body">{{ answer.author.username }}</span>
+                                            {{ answer.created_at|naturaltime }}
+                                        </div>
+                                    {% else %}
+                                        <div class="micro-avatar me-2"
+                                             style="background-color: #6c757d; width: 24px; height: 24px;">?
+                                        </div>
+                                        <div>
+                                            Отговор от <span class="fst-italic text-danger">Изтрит потребител</span>
+                                            {{ answer.created_at|naturaltime }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="d-flex gap-2 align-items-center">
+                                    {% if user.is_authenticated %}
+                                        <a href="{% url 'create_report' 'answer' answer.id %}"
+                                           class="text-secondary text-decoration-none" title="Докладвай">
+                                            <i class="bi bi-flag"></i>
+                                        </a>
+                                    {% endif %}
+
+                                    {% if request.user == answer.author %}
+                                        <a href="{% url 'edit_answer' answer.id %}"
+                                           class="text-secondary text-decoration-none" title="Редактирай"><i
+                                                class="bi bi-pencil"></i></a>
+                                    {% endif %}
+
+                                    {% if request.user == answer.author or request.user.is_admin or request.user.is_superuser %}
+                                        <a href="{% url 'delete_answer' answer.id %}"
+                                           class="text-danger text-decoration-none" title="Изтрий"><i
+                                                class="bi bi-trash"></i></a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="text-center py-4 text-muted border rounded-4 bg-transparent"
+                 style="border-style: dashed !important;">
+                Все още няма отговори. Бъди първият!
+            </div>
+        {% endfor %}
+
+        <div class="mt-5 mb-5 px-2">
+            <h4 class="mb-3">Твоят отговор</h4>
+            {% if user.is_authenticated %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">{{ form.content }}</div>
+                    <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">Публикувай отговор
+                    </button>
+                </form>
+            {% else %}
+                <div class="text-muted border rounded-4 p-4 bg-tertiary">Трябва да влезеш в профила си, за да публикуваш
+                    отговор.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

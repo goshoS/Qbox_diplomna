@@ -1,0 +1,39 @@
+{% load humanize %}
+{% for question in questions %}
+    <div class="question-card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex align-items-start">
+                <!-- Allow this flex item to shrink -->
+                <div class="flex-grow-1 position-relative" style="min-width: 0;">
+                    <h5 class="card-title mb-2 pe-5" style="word-wrap: break-word; word-break: break-word;">
+                        <a href="{% url 'question_detail' question.id %}"
+                           class="text-decoration-none fw-bold stretched-link">
+                            {{ question.title|truncatechars:50 }}
+                        </a>
+                    </h5>
+                    <!-- Force word breaking and respect parent width -->
+                    <p class="text-secondary mb-3 small"
+                       style="width: 100%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; hyphens: auto;">
+                        {{ question.content|truncatechars:100 }}
+                    </p>
+
+                    <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                        <div class="small text-muted">
+                            <i class="bi bi-person"></i> {{ question.author.username|default:"Изтрит" }}
+                            <span class="mx-1">•</span>
+                            <i class="bi bi-calendar3"></i> {{ question.created_at|date:"d M Y" }}
+                        </div>
+                        <div style="position: relative; z-index: 10;">
+                            <a href="{% url 'admin_delete_question' question.id %}"
+                               class="btn btn-sm btn-outline-danger border-0">
+                                <i class="bi bi-trash"></i> Изтрий
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% empty %}
+    <div class="text-center py-4 text-muted">Няма намерени въпроси.</div>
+{% endfor %}

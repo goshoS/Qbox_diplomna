@@ -1,0 +1,23 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <!-- ВАЖНО: Няма table-light -->
+        <thead>
+            <tr>
+                <th class="ps-4">Име на тага</th>
+                <th>Брой въпроси</th>
+                <th class="text-end pe-4">Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tag in tags %}
+            <tr>
+                <td class="ps-4"><span class="badge border text-primary border-primary-subtle fs-6">#{{ tag.name }}</span></td>
+                <td>{{ tag.count }}</td>
+                <td class="text-end pe-4">
+                    <a href="{% url 'delete_tag' tag.pk %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Изтрий</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

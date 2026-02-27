@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+
+                <!-- Заглавие -->
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold display-6 mb-3">Политика за поверителност</h2>
+                    <p class="text-muted">Последна актуализация: 28 Януари 2026</p>
+                </div>
+
+                <!-- Карта със съдържание -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4 p-md-5">
+
+                        <!-- Секция 1 -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold text-primary mb-3">
+                                <i class="bi bi-shield-lock me-2"></i> 1. Каква информация събираме
+                            </h4>
+                            <p>Ние в Qbox ценим вашата поверителност. Събираме само минималното количество данни,
+                                необходимо за функционирането на платформата:</p>
+                            <ul class="text-muted">
+                                <li><strong>Информация за акаунта:</strong> Потребителско име и имейл адрес, необходими
+                                    за регистрация и възстановяване на достъпа.
+                                </li>
+                                <li><strong>Съдържание:</strong> Въпросите, отговорите и коментарите, които публикувате
+                                    публично.
+                                </li>
+                                <li><strong>Технически данни:</strong> Бисквитки (cookies) за поддържане на сесията ви
+                                    активна.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Секция 2 -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold text-primary mb-3">
+                                <i class="bi bi-gear-wide-connected me-2"></i> 2. Как използваме данните
+                            </h4>
+                            <p>Вашите данни се използват единствено за:</p>
+                            <ul class="text-muted">
+                                <li>Предоставяне и поддръжка на услугите на Qbox.</li>
+                                <li>Персонализиране на вашето преживяване (напр. Тъмна тема).</li>
+                                <li>Модерация на съдържанието и защита от спам.</li>
+                            </ul>
+                            <div class="alert alert-info border-0 d-flex align-items-center mt-3" role="alert">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                <div>Ние <strong>никога</strong> не продаваме вашите лични данни на трети страни.</div>
+                            </div>
+                        </div>
+
+                        <!-- Секция 3 -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold text-primary mb-3">
+                                <i class="bi bi-cookie me-2"></i> 3. Бисквитки (Cookies)
+                            </h4>
+                            <p>Сайтът използва само "задължителни" бисквитки:</p>
+                            <ul class="text-muted">
+                                <li><strong>sessionid:</strong> За да ви държим вписани в акаунта.</li>
+                                <li><strong>csrftoken:</strong> За защита от злонамерени атаки при изпращане на форми.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Секция 4 -->
+                        <div class="mb-0">
+                            <h4 class="fw-bold text-primary mb-3">
+                                <i class="bi bi-envelope me-2"></i> 4. Контакти
+                            </h4>
+                            <p>Ако имате въпроси относно вашите данни или искате да изтриете акаунта си, моля свържете
+                                се с администраторския екип чрез формата за контакт или на имейл: <strong>support@qbox.com</strong>.
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container">
+        <h3 class="mb-4 fw-bold">Персонализация</h3>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-body py-3 fw-bold">
+                <i class="bi bi-palette-fill text-primary me-2"></i> Тема на интерфейса
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <p class="text-muted mb-4">Избери как искаш да изглежда Qbox:</p>
+
+                    <div class="row g-4 justify-content-center">
+
+                        <!-- LIGHT MODE OPTION -->
+                        <div class="col-md-5">
+                            <input type="radio" class="btn-check" name="theme" id="theme-light" value="light"
+                                   {% if user.theme == 'light' %}checked{% endif %}>
+                            <label class="btn btn-outline-secondary w-100 p-4 d-flex flex-column align-items-center gap-3 theme-card"
+                                   for="theme-light">
+                                <i class="bi bi-brightness-high-fill fs-1 text-warning"></i>
+                                <span class="fw-bold fs-5">Светла тема</span>
+                                <span class="small text-muted">Класическият светъл вид</span>
+                            </label>
+                        </div>
+
+                        <!-- DARK MODE OPTION -->
+                        <div class="col-md-5">
+                            <input type="radio" class="btn-check" name="theme" id="theme-dark" value="dark"
+                                   {% if user.theme == 'dark' %}checked{% endif %}>
+                            <label class="btn btn-outline-secondary w-100 p-4 d-flex flex-column align-items-center gap-3 theme-card"
+                                   for="theme-dark">
+                                <i class="bi bi-moon-stars-fill fs-1 text-info"></i>
+                                <span class="fw-bold fs-5">Тъмна тема</span>
+                                <span class="small text-muted">По-лесно за очите през нощта</span>
+                            </label>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-5 text-center">
+                        <button type="submit" class="btn btn-primary px-5">Запази промените</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Стил за картите при избор */
+        .theme-card {
+            border: 2px solid var(--bs-border-color, #dee2e6);
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        /* Когато радио бутонът е избран */
+        .btn-check:checked + .theme-card {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+            color: var(--bs-body-color, #212529);
+        }
+
+        .theme-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base_auth.html" %}
+
+{% block title %}Вход - Qbox{% endblock %}
+
+{% block content %}
+    <h2 class="auth-title">Вход в Qbox</h2>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% for field in form %}
+            <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+
+                <div class="input-group">
+                    <input type="{{ field.field.widget.input_type }}"
+                           name="{{ field.name }}"
+                           id="{{ field.id_for_label }}"
+                           class="form-control {% if field.errors %}is-invalid{% endif %}"
+                           value="{{ field.value|default_if_none:'' }}">
+
+                    <!-- БУТОН "ОКО" (Само ако полето е парола) -->
+                    {% if 'password' in field.name %}
+                        <button type="button" class="btn password-toggle-btn" onclick="togglePassword(this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    {% endif %}
+                </div>
+
+                <!-- ГРЕШКИ -->
+                {% if field.errors %}
+                    {% for error in field.errors %}
+                        <div class="error-text">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">Вход</button>
+    </form>
+
+    <div class="mt-4 text-center">
+        <p class="text-muted">Нямаш акаунт? <a href="{% url 'register' %}" class="text-decoration-none">Регистрирай
+            се</a>.</p>
+    </div>
+{% endblock %}
