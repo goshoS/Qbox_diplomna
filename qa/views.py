@@ -21,9 +21,6 @@ from .forms import (
 from .models import CustomUser, Question, Tag, Answer, Report
 from .decorators import admin_required, superuser_required
 
-# Load Bulgarian bad words into profanity filter
-profanity.load_censor_words(BG_BAD_WORDS)
-
 
 # --- Helper функция за лявото меню ---
 def get_popular_tags():
