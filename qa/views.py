@@ -253,7 +253,10 @@ def edit_question(request, pk):
 def delete_question(request, pk):
     question = get_object_or_404(Question, pk=pk)
 
-    if request.user != question.author:
+    # Проверяваме дали e автор, админ или суперадмин
+    is_authorized = (request.user == question.author) or request.user.is_admin or request.user.is_superuser
+
+    if not is_authorized:
         return HttpResponseForbidden("Нямате права да изтриете този въпрос.")
 
     if request.method == 'POST':
