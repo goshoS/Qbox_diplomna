@@ -532,7 +532,10 @@
                 body: JSON.stringify({'type': type, 'id': id, 'action': action})
             })
                 .then(response => {
-                    if (response.status === 403 || response.status === 401) window.location.href = "{% url 'login' %}";
+                    // Ако Django каже "Нямаш достъп" или се опита да пренасочи към login
+                    if (response.status === 403 || response.status === 401 || response.redirected) {
+                        window.location.href = "{% url 'login' %}";
+                    }
                     return response.json();
                 })
                 .then(data => {
