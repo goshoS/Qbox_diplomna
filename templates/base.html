@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <!-- data-bs-theme взима стойността от базата данни -->
 <html lang="bg" data-bs-theme="{% if user.is_authenticated %}{{ user.theme }}{% else %}light{% endif %}">
@@ -8,6 +9,7 @@
     <!-- Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
 
     <!-- Tagify CSS -->
     <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css"/>

@@ -261,7 +261,12 @@ def delete_question(request, pk):
 
     if request.method == 'POST':
         question.delete()
-        return redirect('home')
+
+        # Проверяваме кой трие въпроса и го пращаме на правилното място
+        if request.user.is_admin or request.user.is_superuser:
+            return redirect('manage_reports')
+        else:
+            return redirect('home')
 
     return render(request, 'delete_confirm.html', {
         'object': question,
