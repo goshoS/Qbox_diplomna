@@ -502,21 +502,21 @@ def validate_registration(request):
 
 @login_required
 def profile_settings(request):
-    user = request.user
+    user_instance = get_object_or_404(CustomUser, pk=request.user.pk)
 
-    profile_form = CustomUserChangeForm(instance=user)
-    password_form = PasswordChangeForm(user)
+    profile_form = CustomUserChangeForm(instance=user_instance)
+    password_form = PasswordChangeForm(request.user)
 
     if request.method == 'POST':
         if 'update_profile' in request.POST:
-            profile_form = CustomUserChangeForm(request.POST, instance=user)
+            profile_form = CustomUserChangeForm(request.POST, instance=user_instance)
             if profile_form.is_valid():
                 profile_form.save()
                 messages.success(request, 'Профилът ви беше обновен успешно!')
                 return redirect('profile_settings')
 
         elif 'change_password' in request.POST:
-            password_form = PasswordChangeForm(user, request.POST)
+            password_form = PasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
                 update_session_auth_hash(request, user)
