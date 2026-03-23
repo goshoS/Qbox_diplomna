@@ -79,14 +79,14 @@
                             </div>
 
                             <div class="d-flex gap-2 align-items-center">
-                                {% if user.is_authenticated %}
+                                {% if user.is_authenticated and request.user != question.author %}
                                     <a href="{% url 'create_report' 'question' question.id %}"
                                        class="text-secondary text-decoration-none" title="Докладвай">
                                         <i class="bi bi-flag"></i>
                                     </a>
                                 {% endif %}
 
-                                {% if request.user == question.author or request.user.is_admin or request.user.is_superuser%}
+                                {% if request.user == question.author or request.user.is_admin or request.user.is_superuser %}
                                     <a href="{% url 'edit_question' question.id %}"
                                        class="text-secondary text-decoration-none" title="Редактирай"><i
                                             class="bi bi-pencil"></i></a>
@@ -158,7 +158,7 @@
                                 </div>
 
                                 <div class="d-flex gap-2 align-items-center">
-                                    {% if user.is_authenticated %}
+                                    {% if user.is_authenticated and request.user != question.author %}
                                         <a href="{% url 'create_report' 'answer' answer.id %}"
                                            class="text-secondary text-decoration-none" title="Докладвай">
                                             <i class="bi bi-flag"></i>
@@ -189,18 +189,37 @@
             </div>
         {% endfor %}
 
+        <!-- 3. ФОРМА ЗА ОТГОВОР -->
         <div class="mt-5 mb-5 px-2">
             <h4 class="mb-3">Твоят отговор</h4>
             {% if user.is_authenticated %}
-                <form method="post">
+                <!-- Добавихме ID на формата -->
+                <form method="post" id="answer-form">
                     {% csrf_token %}
                     <div class="mb-3">{{ form.content }}</div>
-                    <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">Публикувай отговор
+                    <!-- Добавихме ID на бутона -->
+                    <button type="submit" id="answer-submit-btn" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
+                        Публикувай отговор
                     </button>
                 </form>
+
+                <!-- Скрипт за защита срещу многократно кликване -->
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const answerForm = document.getElementById('answer-form');
+                        const answerSubmitBtn = document.getElementById('answer-submit-btn');
+
+                        if (answerForm && answerSubmitBtn) {
+                            answerForm.addEventListener('submit', function () {
+                                answerSubmitBtn.disabled = true;
+                                answerSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Публикуване...';
+                            });
+                        }
+                    });
+                </script>
             {% else %}
-                <div class="text-muted border rounded-4 p-4 bg-tertiary">Трябва да влезеш в профила си, за да публикуваш
-                    отговор.
+                <div class="text-muted border rounded-4 p-4 bg-tertiary">
+                    Трябва да влезеш в профила си, за да публикуваш отговор.
                 </div>
             {% endif %}
         </div>

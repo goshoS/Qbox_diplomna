@@ -7,7 +7,7 @@
                 <div class="card-body p-4">
                     <h3 class="card-title mb-4">Задай въпрос</h3>
 
-                    <form method="post">
+                    <form method="post" id="ask-form">
                         {% csrf_token %}
 
                         <!-- Заглавие -->
@@ -42,14 +42,14 @@
                         </div>
 
                         <div class="d-flex justify-content-between">
-                            <!-- Логика за бутона Отказ: Админ -> Админ панел, User -> Home -->
                             {% if user.is_admin or user.is_superuser %}
                                 <a href="{% url 'manage_users' %}" class="btn btn-outline-secondary">Отказ</a>
                             {% else %}
                                 <a href="{% url 'home' %}" class="btn btn-outline-secondary">Отказ</a>
                             {% endif %}
 
-                            <button type="submit" class="btn btn-primary px-4">Публикувай въпроса</button>
+                            <button type="submit" class="btn btn-primary px-4" id="submit-btn">Публикувай въпроса
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -57,17 +57,18 @@
         </div>
     </div>
 
-    <!-- Скрипт за Tagify -->
+    <!-- СКРИПТОВЕ -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // 1. TAGIFY ЛОГИКА
             var input = document.querySelector('input[name=tags]');
-
             fetch('{% url "tag_list_api" %}')
                 .then(response => response.json())
                 .then(whitelist => {
                     var tagify = new Tagify(input, {
                         whitelist: whitelist,
                         maxTags: 10,
+                        pattern: /^.{1,50}$/,
                         dropdown: {
                             maxItems: 20,
                             classname: "tags-look",
@@ -75,7 +76,33 @@
                             closeOnSelect: false
                         }
                     });
+
+                    tagify.on('input', function (e) {
+                        var value = e.detail.value;
+                        if (value.length > 50) {
+                            tagify.DOM.input.textContent = value.substring(0, 50);
+                            var range = document.createRange();
+                            var sel = window.getSelection();
+                            range.selectNodeContents(tagify.DOM.input);
+                            range.collapse(false);
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                        }
+                    });
                 });
+
+            // 2. ЗАЩИТА СРЕЩУ МНОГОКРАТНО КЛИКВАНЕ (Double Submit Fix)
+            const askForm = document.getElementById('ask-form');
+            const submitBtn = document.getElementById('submit-btn');
+
+            if (askForm && submitBtn) {
+                askForm.addEventListener('submit', function () {
+                    // Заключваме бутона
+                    submitBtn.disabled = true;
+                    // Слагаме въртящо се кръгче (spinner) и сменяме текста
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Публикуване...';
+                });
+            }
         });
     </script>
 {% endblock %}

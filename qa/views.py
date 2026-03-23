@@ -552,8 +552,15 @@ def create_report(request, obj_type, pk):
 
     if obj_type == 'question':
         question_obj = get_object_or_404(Question, pk=pk)
+        # Не можеш да докладваш собствения си въпрос
+        if question_obj.author == request.user:
+            return HttpResponseForbidden("Не можете да докладвате собствения си въпрос.")
+
     elif obj_type == 'answer':
         answer_obj = get_object_or_404(Answer, pk=pk)
+        # Не можеш да докладваш собствения си отговор
+        if answer_obj.author == request.user:
+            return HttpResponseForbidden("Не можете да докладвате собствения си отговор.")
     else:
         return redirect('home')
 

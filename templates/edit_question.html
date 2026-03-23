@@ -62,11 +62,29 @@
                     var tagify = new Tagify(input, {
                         whitelist: whitelist,
                         maxTags: 10,
+                        pattern: /^.{1,50}$/, // Позволява тагът да е дълъг от 1 до 50 символа
                         dropdown: {
                             maxItems: 20,
                             classname: "tags-look",
                             enabled: 0,
                             closeOnSelect: false
+                        }
+                    });
+
+                    // Допълнителна защита, която спира писането след 50-тия символ
+                    tagify.on('input', function (e) {
+                        var value = e.detail.value;
+                        if (value.length > 50) {
+                            // Реже текста до 50 символа
+                            tagify.DOM.input.textContent = value.substring(0, 50);
+
+                            // Връща курсора в края на текста
+                            var range = document.createRange();
+                            var sel = window.getSelection();
+                            range.selectNodeContents(tagify.DOM.input);
+                            range.collapse(false);
+                            sel.removeAllRanges();
+                            sel.addRange(range);
                         }
                     });
                 });

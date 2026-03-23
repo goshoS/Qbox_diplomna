@@ -214,7 +214,8 @@ class AnswerForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Напиши своя отговор тук...',
                 'class': 'form-control',
-                'style': 'resize: vertical; max-height: 400px;'
+                'style': 'resize: vertical; max-height: 400px;',
+                'maxlength': '5000',
             }),
         }
 
