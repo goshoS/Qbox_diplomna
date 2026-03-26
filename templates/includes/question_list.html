@@ -77,7 +77,7 @@
 
                     <div class="position-absolute top-0 end-0 ps-2 pt-0 pe-0 d-flex gap-1 gap-md-2"
                          style="z-index: 10;">
-                        {% if user.is_authenticated and request.user != question.author %}
+                        {% if user.is_authenticated and user != question.author %}
                             <a href="{% url 'create_report' 'question' question.id %}"
                                class="btn btn-sm text-secondary p-1" title="Докладвай">
                                 <i class="bi bi-flag"></i>

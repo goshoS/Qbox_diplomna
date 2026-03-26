@@ -1,39 +1,59 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="row justify-content-center mt-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-danger text-white fw-bold">
-                    <i class="bi bi-flag-fill"></i> Докладване на нередност
-                </div>
-                <div class="card-body p-4">
-                    <p class="text-muted mb-4">
-                        Докладвате
-                        {% if obj_type == 'question' %}въпрос{% else %}отговор{% endif %}.
-                        Моля, посочете причината.
-                    </p>
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-danger text-white fw-bold">
+                <i class="bi bi-flag-fill"></i> Докладване на нередност
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted mb-4">
+                    Докладвате
+                    {% if obj_type == 'question' %}въпрос{% else %}отговор{% endif %}.
+                    Моля, посочете причината.
+                </p>
 
-                    <form method="post">
-                        {% csrf_token %}
+                <!-- НОВО: Слагаме ID на формата -->
+                <form method="post" id="report-form">
+                    {% csrf_token %}
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Причина</label>
-                            {{ form.reason }}
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Причина</label>
+                        {{ form.reason }}
+                    </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Описание</label>
-                            {{ form.description }}
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Описание</label>
+                        {{ form.description }}
+                    </div>
 
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="javascript:history.back()" class="btn btn-outline-secondary">Отказ</a>
-                            <button type="submit" class="btn btn-danger">Изпрати доклад</button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">Отказ</a>
+
+                        <!-- НОВО: Слагаме ID на бутона -->
+                        <button type="submit" id="submit-report-btn" class="btn btn-danger">Изпрати доклад</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Скрипт за защита срещу многократно кликване (Double Submit Fix) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const reportForm = document.getElementById('report-form');
+        const submitBtn = document.getElementById('submit-report-btn');
+
+        if (reportForm && submitBtn) {
+            reportForm.addEventListener('submit', function() {
+                // Заключваме бутона веднага щом формата се изпрати
+                submitBtn.disabled = true;
+                // Сменяме текста и добавяме въртящо се кръгче (spinner)
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Изпращане...';
+            });
+        }
+    });
+</script>
 {% endblock %}

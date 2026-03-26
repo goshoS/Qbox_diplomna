@@ -15,6 +15,7 @@ BG_BAD_WORDS = [
 # Добавям ги към общия списък
 profanity.add_censor_words(BG_BAD_WORDS)
 
+
 def validate_clean_content(value):
     """
     Проверява дали текстът съдържа нецензурни думи (EN + BG).
@@ -29,6 +30,7 @@ def validate_clean_content(value):
             _("Съдържанието съдържа нецензурен език. Моля, бъдете учтиви."),
             code='profanity_detected'
         )
+
 
 # --- ВАЛИДАТОР ЗА ПАРОЛА
 class MaximumLengthValidator:
