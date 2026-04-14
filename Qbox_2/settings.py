@@ -139,3 +139,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'qa.CustomUser'
 LOGIN_REDIRECT_URL = 'login_success'  # Къде да отиде след вход
 LOGOUT_REDIRECT_URL = 'home'  # Къде да отиде след изход
+LOGIN_URL = 'login'
