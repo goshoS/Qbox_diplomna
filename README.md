@@ -1,7 +1,7 @@
 # 💬 Qbox - Платформа за въпроси и отговори (Q&A)
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge&logo=python)
-![Django](https://img.shields.io/badge/Django-5.2.8-092E20?style=for-the-badge&logo=django)
+![Django](https://img.shields.io/badge/Django-6.0.4-092E20?style=for-the-badge&logo=django)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap)
 
@@ -15,10 +15,9 @@
 
 1. [Основни функционалности](#-основни-функционалности)
 2. [Технологичен стек](#-технологичен-стек)
-3.[Сигурност и защита](#-сигурност-и-защита)
+3. [Сигурност и защита](#-сигурност-и-защита)
 4. [Инструкции за стартиране (Setup Guide)](#-инструкции-за-стартиране-setup-guide)
 5. [Тестване](#-тестване)
-6. [Лиценз](#-лиценз)
 
 ---
 
@@ -39,7 +38,7 @@
 
 ### Backend
 * **Python 3.10+**
-* **Django 5.2.8** (MVT Архитектура)
+* **Django 6.0.4** (MVT Архитектура)
 * **PostgreSQL** (Релационна база данни чрез `psycopg2-binary`)
 
 ### Frontend
