@@ -86,10 +86,13 @@
                                     </a>
                                 {% endif %}
 
-                                {% if request.user == question.author or request.user.is_admin or request.user.is_superuser %}
-                                    <a href="{% url 'edit_question' question.id %}"
+                                {% if request.user == answer.author %}
+                                    <a href="{% url 'edit_answer' answer.id %}"
                                        class="text-secondary text-decoration-none" title="Редактирай"><i
                                             class="bi bi-pencil"></i></a>
+                                {% endif %}
+
+                                {% if request.user == question.author or request.user.is_admin or request.user.is_superuser %}
                                     <a href="{% url 'delete_question' question.id %}"
                                        class="text-danger text-decoration-none" title="Изтрий"><i
                                             class="bi bi-trash"></i></a>
